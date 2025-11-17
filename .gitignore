@@ -1,0 +1,12 @@
+venv/
+__pycache__/
+*.pyc
+
+# Node and Vue
+node_modules/
+dist/
+.env
+
+# OS & Editor
+.vscode/
+.DS_Store
