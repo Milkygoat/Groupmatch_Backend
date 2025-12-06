@@ -1,0 +1,49 @@
+# from fastapi import APIRouter, Depends
+# from sqlalchemy.orm import Session
+# from app.db.database import get_db
+# from .schemas import JoinMatchmakingResponse
+# from .service import join_matchmaking
+# from app.core.security import get_current_user   # pastikan ini ada
+
+# router = APIRouter(prefix="/matchmaking", tags=["Matchmaking"])
+
+# @router.post("/join", response_model=JoinMatchmakingResponse)
+# def join(
+#     db: Session = Depends(get_db),
+#     current_user = Depends(get_current_user)
+# ):
+
+#     result = join_matchmaking(
+#         db=db,
+#         user_id=current_user.id,
+#         role=current_user.role   # atau current_user.data.role
+#     )
+
+#     return JoinMatchmakingResponse(message=result["message"])
+
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+from app.db.database import get_db
+from app.core.security import get_current_user
+from app.matchmaking.service import join_matchmaking
+from app.db.models import Profile
+
+router = APIRouter(prefix="/matchmaking", tags=["Matchmaking"])
+
+
+@router.post("/join")
+def join(db: Session = Depends(get_db), current_user = Depends(get_current_user)):
+
+    # ambil profile user
+    profile = db.query(Profile).filter(Profile.user_id == current_user.id).first()
+
+    if not profile:
+        raise HTTPException(400, "User belum membuat profile")
+
+    result = join_matchmaking(
+        db=db,
+        user_id=current_user.id,
+        role=profile.role
+    )
+
+    return {"message": result["message"]}

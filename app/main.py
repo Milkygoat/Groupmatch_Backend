@@ -5,6 +5,7 @@ from app.auth.router import router as auth_router
 from app.profile.router import router as profile_router
 import cloudinary
 from app.core.config import settings
+from app.matchmaking.router import router as matchmaking_router
 
 cloudinary.config(
     cloud_name=settings.CLOUDINARY_CLOUD_NAME,
@@ -19,6 +20,7 @@ app.include_router(profile_router)
 
 app.include_router(auth_router)
 
+app.include_router(matchmaking_router)
 @app.get("/")
 def home():
     return {"message": "Backend Group Match API Running"}

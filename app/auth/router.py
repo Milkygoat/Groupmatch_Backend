@@ -116,6 +116,27 @@ def github_login():
 # ============================
 # GitHub OAuth Callback
 # ============================
+# @router.get("/github/callback")
+# async def github_callback(code: str, db: Session = Depends(get_db)):
+#     # Step 1: Dapatkan access token dari GitHub
+#     access_token = await get_github_access_token(code)
+
+#     # Step 2: Dapatkan data user GitHub
+#     github_user = await get_github_user(access_token)
+
+#     email = github_user.get("email")
+#     username = github_user.get("login")
+#     name = github_user.get("name") or username
+#     avatar = github_user.get("avatar_url")
+
+#     token = create_access_token({
+#     "user_id": user.id,
+#     "email": user.email
+# })
+
+
+#     if email is None:
+#         raise HTTPException(400, "Email GitHub tidak tersedia, aktifkan 'Email → Public email' di GitHub settings.")
 @router.get("/github/callback")
 async def github_callback(code: str, db: Session = Depends(get_db)):
     # Step 1: Dapatkan access token dari GitHub
@@ -129,11 +150,48 @@ async def github_callback(code: str, db: Session = Depends(get_db)):
     name = github_user.get("name") or username
     avatar = github_user.get("avatar_url")
 
-    token = create_access_token({
-    "user_id": user.id,
-    "email": user.email
-})
-
-
     if email is None:
-        raise HTTPException(400, "Email GitHub tidak tersedia, aktifkan 'Email → Public email' di GitHub settings.")
+        raise HTTPException(
+            status_code=400,
+            detail="Email GitHub tidak tersedia, aktifkan 'Email → Public email' pada GitHub settings."
+        )
+    
+     # ============================
+    # Cek user apakah sudah terdaftar
+    # ============================
+    existing_user = db.query(models.User).filter(models.User.email == email).first()
+
+    if not existing_user:
+        # Buat user baru
+        new_user = models.User(
+            name=name,
+            email=email,
+            username=username,
+            password="oauth"  # dummy password
+        )
+        db.add(new_user)
+        db.commit()
+        db.refresh(new_user)
+
+        user = new_user
+    else:
+        user = existing_user
+
+    # ================
+    # Buat JWT
+    # ================
+    token = create_access_token({
+        "user_id": user.id,
+        "email": user.email
+    })
+
+    return {
+        "message": "Login via GitHub success",
+        "token": token,
+        "user": {
+            "id": user.id,
+            "email": user.email,
+            "username": user.username,
+            "name": user.name
+        }
+    }
