@@ -34,6 +34,11 @@ def login_user(data, db: Session):
         raise HTTPException(status_code=401, detail="Incorrect password")
 
     # generate jwt
-    token = create_access_token({"sub": user.email})
+    # token = create_access_token({"sub": user.email})
+    token = create_access_token({
+    "user_id": user.id,
+    "email": user.email
+})
+
 
     return token, user

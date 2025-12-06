@@ -87,7 +87,12 @@ async def google_callback(code: str, db: Session = Depends(get_db)):
         user = existing_user
 
     # Buat JWT Token
-    token = create_access_token({"sub": user.email})
+    # token = create_access_token({"sub": user.email})
+    token = create_access_token({
+    "user_id": user.id,
+    "email": user.email
+})
+
 
     return {
         "message": "Login via Google success",
@@ -123,6 +128,12 @@ async def github_callback(code: str, db: Session = Depends(get_db)):
     username = github_user.get("login")
     name = github_user.get("name") or username
     avatar = github_user.get("avatar_url")
+
+    token = create_access_token({
+    "user_id": user.id,
+    "email": user.email
+})
+
 
     if email is None:
         raise HTTPException(400, "Email GitHub tidak tersedia, aktifkan 'Email → Public email' di GitHub settings.")
