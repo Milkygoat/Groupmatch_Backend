@@ -1,44 +1,71 @@
-# from fastapi import APIRouter, Depends
+# # from fastapi import APIRouter, Depends
+# # from sqlalchemy.orm import Session
+# # from app.db.database import get_db
+# # from .schemas import JoinMatchmakingResponse
+# # from .service import join_matchmaking
+# # from app.core.security import get_current_user   # pastikan ini ada
+
+# # router = APIRouter(prefix="/matchmaking", tags=["Matchmaking"])
+
+# # @router.post("/join", response_model=JoinMatchmakingResponse)
+# # def join(
+# #     db: Session = Depends(get_db),
+# #     current_user = Depends(get_current_user)
+# # ):
+
+# #     result = join_matchmaking(
+# #         db=db,
+# #         user_id=current_user.id,
+# #         role=current_user.role   # atau current_user.data.role
+# #     )
+
+# #     return JoinMatchmakingResponse(message=result["message"])
+
+# from fastapi import APIRouter, Depends, HTTPException
 # from sqlalchemy.orm import Session
 # from app.db.database import get_db
-# from .schemas import JoinMatchmakingResponse
-# from .service import join_matchmaking
-# from app.core.security import get_current_user   # pastikan ini ada
+# from app.core.security import get_current_user
+# from app.matchmaking.service import join_matchmaking
+# from app.db.models import Profile
 
 # router = APIRouter(prefix="/matchmaking", tags=["Matchmaking"])
 
-# @router.post("/join", response_model=JoinMatchmakingResponse)
-# def join(
-#     db: Session = Depends(get_db),
-#     current_user = Depends(get_current_user)
-# ):
+
+# @router.post("/join")
+# def join(db: Session = Depends(get_db), current_user = Depends(get_current_user)):
+
+#     # ambil profile user
+#     profile = db.query(Profile).filter(Profile.user_id == current_user.id).first()
+
+#     if not profile:
+#         raise HTTPException(400, "User belum membuat profile")
 
 #     result = join_matchmaking(
 #         db=db,
 #         user_id=current_user.id,
-#         role=current_user.role   # atau current_user.data.role
+#         role=profile.role
 #     )
 
-#     return JoinMatchmakingResponse(message=result["message"])
+#     return {"message": result["message"]}
+
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+
 from app.db.database import get_db
 from app.core.security import get_current_user
-from app.matchmaking.service import join_matchmaking
+from .service import join_matchmaking
+from .schemas import JoinMatchmakingResponse
 from app.db.models import Profile
 
 router = APIRouter(prefix="/matchmaking", tags=["Matchmaking"])
 
-
-@router.post("/join")
-def join(db: Session = Depends(get_db), current_user = Depends(get_current_user)):
-
+@router.post("/join", response_model=JoinMatchmakingResponse)
+def join_queue(db: Session = Depends(get_db), current_user=Depends(get_current_user)):
     # ambil profile user
     profile = db.query(Profile).filter(Profile.user_id == current_user.id).first()
-
     if not profile:
-        raise HTTPException(400, "User belum membuat profile")
+        raise HTTPException(status_code=400, detail="User belum membuat profile")
 
     result = join_matchmaking(
         db=db,
@@ -46,4 +73,9 @@ def join(db: Session = Depends(get_db), current_user = Depends(get_current_user)
         role=profile.role
     )
 
-    return {"message": result["message"]}
+    # result bisa {"message": "..."} atau hasil create_room
+    return JoinMatchmakingResponse(
+        message=result.get("message"),
+        room_id=result.get("room_id"),
+        leader_id=result.get("leader_id")
+    )

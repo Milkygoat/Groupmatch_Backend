@@ -14,6 +14,8 @@ class User(Base):
     created_at = Column(DateTime, server_default=func.now())
     profile = relationship("Profile", back_populates="user", uselist=False)
 
+    rooms_led = relationship("Room", back_populates="leader")
+
 
 class Profile(Base):
     __tablename__ = "profile"
