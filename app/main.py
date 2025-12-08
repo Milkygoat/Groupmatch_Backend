@@ -10,7 +10,7 @@ from app.rooms.router import router as room_router
 
 from app.ws.router import router as ws_router
 
-from app.ws.voice import router as voice_router
+# from app.ws.voice import router as voice_router
 
 cloudinary.config(
     cloud_name=settings.CLOUDINARY_CLOUD_NAME,
@@ -31,7 +31,7 @@ app.include_router(room_router)
 
 app.include_router(ws_router)
 
-app.include_router(voice_router)
+# app.include_router(voice_router)
 @app.get("/")
 def home():
     return {"message": "Backend Group Match API Running"}

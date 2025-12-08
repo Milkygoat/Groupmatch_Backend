@@ -1,22 +1,22 @@
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+# from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
-router = APIRouter()
+# router = APIRouter()
 
-active_connections = []
+# active_connections = []
 
 
-@router.websocket("/ws/voice")
-async def voice_ws(websocket: WebSocket):
-    await websocket.accept()
-    active_connections.append(websocket)
+# @router.websocket("/ws/voice")
+# async def voice_ws(websocket: WebSocket):
+#     await websocket.accept()
+#     active_connections.append(websocket)
 
-    try:
-        while True:
-            data = await websocket.receive_bytes()
-            # broadcast ke client lain
-            for conn in active_connections:
-                if conn != websocket:
-                    await conn.send_bytes(data)
+#     try:
+#         while True:
+#             data = await websocket.receive_bytes()
+#             # broadcast ke client lain
+#             for conn in active_connections:
+#                 if conn != websocket:
+#                     await conn.send_bytes(data)
 
-    except WebSocketDisconnect:
-        active_connections.remove(websocket)
+#     except WebSocketDisconnect:
+#         active_connections.remove(websocket)
