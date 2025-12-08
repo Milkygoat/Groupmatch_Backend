@@ -79,9 +79,9 @@ async def websocket_room_endpoint(
 
             msg_type = payload.get("type")
 
-            # ---------------------------------------
+
             #            CHAT HANDLER
-            # ---------------------------------------
+       
             if msg_type == "chat":
                 text = payload.get("text", "")
 

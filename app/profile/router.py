@@ -22,9 +22,8 @@ from .upload_service import upload_avatar
 router = APIRouter(prefix="/profile", tags=["Profile"])
 
 
-# ============================
+
 # UPLOAD AVATAR
-# ============================
 @router.post("/upload-avatar")
 async def upload_profile_picture(
     file: UploadFile = File(...),
@@ -47,9 +46,8 @@ async def upload_profile_picture(
     return {"avatar_url": url}
 
 
-# ============================
+
 # CREATE Profile (hanya 1x)
-# ============================
 @router.post("/", response_model=ProfileOut)
 def create_user_profile(
     data: ProfileCreate,
@@ -65,9 +63,8 @@ def create_user_profile(
     return profile
 
 
-# ============================
+
 # GET Profile user sendiri
-# ============================
 @router.get("/me", response_model=ProfileOut)
 def get_my_profile(
     db: Session = Depends(get_db),
@@ -81,9 +78,8 @@ def get_my_profile(
     return profile
 
 
-# ============================
+
 # UPDATE Profile user
-# ============================
 @router.put("/", response_model=ProfileOut)
 def update_my_profile(
     data: ProfileCreate,

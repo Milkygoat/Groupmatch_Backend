@@ -4,29 +4,26 @@ from sqlalchemy.orm import Session
 from app.db.database import get_db
 from app.auth import schemas, service
 from app.auth.google_oauth import generate_google_login_url, get_google_user
-# from app.auth.github_oauth import (
-#     generate_github_login_url,
-#     get_github_access_token,
-#     get_github_user
-# )
+
 from app.core.security import create_access_token
 from app.db import models
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
 
-# ============================
+
 # Register
-# ============================
 @router.post("/register")
 def register(data: schemas.RegisterRequest, db: Session = Depends(get_db)):
     user = service.register_user(data, db)
-    return {"message": "Register success", "user": user}
+    return {
+        "message": "Register success",
+        "user": user
+    }
 
 
-# ============================
+
 # Login
-# ============================
 @router.post("/login")
 def login(data: schemas.LoginRequest, db: Session = Depends(get_db)):
     token, user = service.login_user(data, db)
@@ -39,9 +36,8 @@ def login(data: schemas.LoginRequest, db: Session = Depends(get_db)):
     }
 
 
-# ============================
+
 # Google OAuth: Login URL
-# ============================
 @router.get("/google/login")
 def google_login():
     return {"login_url": generate_google_login_url()}
@@ -50,9 +46,8 @@ def google_login():
 
 
 
-# ============================
+
 # Google OAuth Callback
-# ============================
 @router.get("/google/callback")
 async def google_callback(code: str, db: Session = Depends(get_db)):
     # Ambil user dari Google

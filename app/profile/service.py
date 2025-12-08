@@ -40,17 +40,6 @@ def update_profile(db: Session, user_id: int, data):
     db.refresh(profile)
     return profile
 
-# async def update_profile_picture(user_id: int, url: str):
-#     db: Session = next(get_db())
-
-#     profile = db.query(Profile).filter(Profile.user_id == user_id).first()
-#     profile.pict = url
-#     db.commit()
-
-#     # Update Redis cache
-#     redis_key = f"profile:{user_id}"
-#     redis_client.hset(redis_key, "pict", url)
-#     redis_client.expire(redis_key, 600)  # cache 10 menit
 
 
 def update_profile_picture(db: Session, user_id: int, url: str):

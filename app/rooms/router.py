@@ -7,17 +7,15 @@ from .model import Room
 
 router = APIRouter(prefix="/rooms", tags=["Rooms"])
 
-# ================================
+
 # GET /rooms - lihat semua room
-# ================================
 @router.get("/")
 def get_all_rooms(db: Session = Depends(get_db)):
     return db.query(Room).all()
 
 
-# ============================================
+
 # GET /rooms/my - lihat room user yang aktif
-# ============================================
 @router.get("/my")
 def get_my_room(
     db: Session = Depends(get_db),
