@@ -7,10 +7,21 @@ import cloudinary
 from app.core.config import settings
 from app.matchmaking.router import router as matchmaking_router
 from app.rooms.router import router as room_router
-
 from app.ws.router import router as ws_router
-
+from fastapi.middleware.cors import CORSMiddleware 
 # from app.ws.voice import router as voice_router
+
+app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],    
+    allow_headers=["*"],
+)
 
 cloudinary.config(
     cloud_name=settings.CLOUDINARY_CLOUD_NAME,
@@ -20,7 +31,6 @@ cloudinary.config(
 
 models.User.metadata.create_all(bind=engine)
 
-app = FastAPI()
 app.include_router(profile_router)
 
 app.include_router(auth_router)

@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 
 from app.db.database import get_db
@@ -6,8 +7,10 @@ from app.auth import schemas, service
 from app.auth.google_oauth import generate_google_login_url, get_google_user
 
 from app.core.security import create_access_token
+from app.core.config import settings
 from app.db import models
 
+from urllib.parse import urlencode
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
 
@@ -54,8 +57,7 @@ async def google_callback(code: str, db: Session = Depends(get_db)):
     google_user = await get_google_user(code)
 
     email = google_user["email"]
-    # name = google_user.get("name", "")
-    picture = google_user.get("picture", "")
+    # picture = google_user.get("picture", "")
 
     # Cek apakah user sudah ada
     existing_user = db.query(models.User).filter(models.User.email == email).first()
@@ -64,7 +66,6 @@ async def google_callback(code: str, db: Session = Depends(get_db)):
         username = email.split("@")[0]
 
         new_user = models.User(
-            # name=name,
             email=email,
             username=username,
             password="oauth",       # dummy password, tidak dipakai
@@ -82,21 +83,28 @@ async def google_callback(code: str, db: Session = Depends(get_db)):
         user = existing_user
 
     # Buat JWT Token
-    # token = create_access_token({"sub": user.email})
     token = create_access_token({
     "user_id": user.id,
     "email": user.email
 })
 
-
-    return {
-        "message": "Login via Google success",
+# Redirect ke frontend
+    query_params = urlencode({
         "token": token,
-        "user": {
-            "id": user.id,
-            "email": user.email,
-            # "name": user.name,
-            "username": user.username,
-        }
-    }
+        "provider": "google"
+    })
+
+    frontend_redirect_url = f"{settings.FRONTEND_URL}/oauth/callback?{query_params}"
+
+    return RedirectResponse(frontend_redirect_url)
+
+    # return {
+    #     "message": "Login via Google success",
+    #     "token": token,
+    #     "user": {
+    #         "id": user.id,
+    #         "email": user.email,
+    #         "username": user.username,
+    #     }
+    # }
 
