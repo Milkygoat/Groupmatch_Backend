@@ -98,13 +98,3 @@ async def google_callback(code: str, db: Session = Depends(get_db)):
 
     return RedirectResponse(frontend_redirect_url)
 
-    # return {
-    #     "message": "Login via Google success",
-    #     "token": token,
-    #     "user": {
-    #         "id": user.id,
-    #         "email": user.email,
-    #         "username": user.username,
-    #     }
-    # }
-
