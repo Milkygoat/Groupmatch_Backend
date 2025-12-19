@@ -3,7 +3,7 @@ from app.db.models import Profile
 from app.db.database import get_db
 from sqlalchemy.orm import Session
 from app.db.models import Profile
-from app.utils.redis import redis_client
+
 
 def create_profile(db: Session, user_id: int, data):
     profile = Profile(
