@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, func
+from sqlalchemy import Column, Integer, String, DateTime, func, Text
 from app.db.database import Base
 from sqlalchemy import Column, Integer, String, Date, ForeignKey
 from sqlalchemy.orm import relationship
@@ -36,3 +36,17 @@ class Profile(Base):
     user = relationship("User", back_populates="profile")
 
 # Note: MatchmakingQueue is defined in app/matchmaking/models.py to avoid duplicate definitions
+
+
+class RoomMessage(Base):
+    __tablename__ = "room_messages"
+
+    id = Column(Integer, primary_key=True, index=True)
+    room_id = Column(Integer, ForeignKey("rooms.id", ondelete="CASCADE"), index=True)
+    user_id = Column(Integer, ForeignKey("auth.id", ondelete="CASCADE"), index=True)
+    message = Column(Text, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)
+    
+    # Relationships
+    user = relationship("User")
+    # room relationship can be added from Room model if needed
