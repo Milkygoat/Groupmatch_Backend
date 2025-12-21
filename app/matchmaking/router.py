@@ -110,3 +110,35 @@ def leave_matchmaking(
         return {"message": "Left room"}
     
     return {"message": "Left queue"}
+
+
+@router.get("/history/{room_id}")
+def get_room_history(
+    room_id: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
+    """Get room history (who joined, left, closed)"""
+    from app.matchmaking.models import RoomHistory
+    from app.rooms.model import Room
+    
+    room = db.query(Room).filter(Room.id == room_id).first()
+    if not room:
+        raise HTTPException(status_code=404, detail="Room not found")
+    
+    # Get all history entries for this room
+    history_entries = db.query(RoomHistory).filter(
+        RoomHistory.room_id == room_id
+    ).order_by(RoomHistory.timestamp).all()
+    
+    return {
+        "room_id": room_id,
+        "history": [
+            {
+                "user_id": h.user_id,
+                "action": h.action,
+                "timestamp": h.timestamp.isoformat() if h.timestamp else None
+            }
+            for h in history_entries
+        ]
+    }

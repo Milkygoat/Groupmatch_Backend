@@ -2,13 +2,6 @@ from sqlalchemy.orm import Session
 from fastapi import HTTPException
 import random
 from app.rooms.model import Room
-# from .models import RoomMember, RoomHistory
-from .queue import add_to_queue, count_queue, get_all_queue, clear_queue
-from app.db.models import Profile  # kalau file kamu beda, sesuaikan
-from sqlalchemy.orm import Session
-from fastapi import HTTPException
-import random
-
 from .queue import (
     add_to_queue,
     is_in_queue,
@@ -114,6 +107,8 @@ def try_process_match(db: Session):
     Check whole queue and create a room if we can satisfy REQUIRED composition.
     Returns created room info or None.
     """
+    from sqlalchemy import func
+    
     print(f"\n[MATCHMAKING] === try_process_match called ===")
     
     # read all queue entries
@@ -181,7 +176,8 @@ def try_process_match(db: Session):
         room.members.extend(users)
         print(f"[MATCHMAKING] Added users to room.members")
         
-        # Also add to room_members table with role information
+        # Also add to room_members table with role information AND room history
+        from datetime import datetime
         for user_id in selected_user_ids:
             # Get the queue entry to get the role
             queue_entry = next((e for e in queue_entries if e.user_id == user_id), None)
@@ -192,6 +188,15 @@ def try_process_match(db: Session):
                 role_id=None  # Can be set later if needed
             )
             db.add(room_member)
+            
+            # Add room history entry
+            room_history = RoomHistory(
+                room_id=room.id,
+                user_id=user_id,
+                action="join",
+                timestamp=datetime.now()
+            )
+            db.add(room_history)
         
         db.commit()
         print(f"[MATCHMAKING] Saved room members to database")
