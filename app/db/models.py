@@ -29,3 +29,37 @@ class Profile(Base):
     skill = Column(String(255))  # bisa disimpan comma-separated "Python,Vue,SQL"
 
     user = relationship("User", back_populates="profile")
+
+    # ================= ROOM =================
+class Room(Base):
+    __tablename__ = "rooms"
+
+    id = Column(Integer, primary_key=True, index=True)
+    leader_id = Column(Integer, ForeignKey("auth.id"))
+    created_at = Column(DateTime, server_default=func.now())
+
+    leader = relationship("User")
+    members = relationship("RoomMember", back_populates="room")
+
+
+# ================= ROOM MEMBER =================
+class RoomMember(Base):
+    __tablename__ = "room_members"
+
+    id = Column(Integer, primary_key=True)
+    room_id = Column(Integer, ForeignKey("rooms.id"))
+    user_id = Column(Integer, ForeignKey("auth.id"))
+    role = Column(String(50))
+
+    room = relationship("Room", back_populates="members")
+    user = relationship("User")
+
+
+# ================= MATCHMAKING QUEUE =================
+class MatchmakingQueue(Base):
+    __tablename__ = "matchmaking_queue"
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey("auth.id"), unique=True)
+    role = Column(String(50))
+    joined_at = Column(DateTime, server_default=func.now())

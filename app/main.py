@@ -16,6 +16,7 @@ from app.db import models  # pastikan semua model ke-import
 
 
 
+
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
@@ -35,7 +36,9 @@ cloudinary.config(
     api_secret=settings.CLOUDINARY_API_SECRET
 )
 
-models.User.metadata.create_all(bind=engine)
+# models.User.metadata.create_all(bind=engine)
+
+Base.metadata.create_all(bind=engine)
 
 app.include_router(profile_router)
 
