@@ -5,6 +5,7 @@ from app.core.security import get_current_user
 from app.db.database import get_db
 from .model import Room
 from app.matchmaking.models import RoomMember
+from .schemas import RoomResponse
 
 
 
@@ -39,7 +40,7 @@ def get_all_rooms(db: Session = Depends(get_db)):
     return db.query(Room).all()
 
 
-@router.get("/my")
+@router.get("/my", response_model=RoomResponse)
 def get_my_room(
     db: Session = Depends(get_db),
     user = Depends(get_current_user)
@@ -54,7 +55,7 @@ def get_my_room(
     return db.query(Room).filter(Room.id == member.room_id).first()
 
 
-@router.get("/{room_id}")
+@router.get("/{room_id}", response_model=RoomResponse)
 def get_room(
     room_id: int,
     db: Session = Depends(get_db),
