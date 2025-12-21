@@ -74,6 +74,7 @@ def join_matchmaking(db: Session, user_id: int, role: str):
 
     # normalize role from profile if role param not passed
     normalized = normalize_role(role or profile.role)
+    print(f"User {user_id}: Original role='{role or profile.role}', Normalized='{normalized}'")
 
     # 2. cek sudah di queue?
     if is_in_queue(db, user_id):
@@ -103,10 +104,15 @@ def try_process_match(db: Session):
     for e in queue_entries:
         buckets.setdefault(e.role, []).append(e.user_id)
 
+    print(f"Queue buckets: {buckets}")
+    print(f"Required: {REQUIRED}")
+
     # quick check: do we have enough for every required role?
     for needed_role, needed_count in REQUIRED.items():
         have = len(buckets.get(needed_role, []))
+        print(f"  Role '{needed_role}': need {needed_count}, have {have}")
         if have < needed_count:
+            print(f"  Not enough for {needed_role}, skipping room creation")
             return None  # not enough yet
 
     # pick users for each role (randomly)
@@ -115,6 +121,8 @@ def try_process_match(db: Session):
         candidates = buckets.get(needed_role, [])
         chosen = random.sample(candidates, needed_count)
         selected_user_ids.extend(chosen)
+
+    print(f"Selected users for new room: {selected_user_ids}")
 
     # create room (import Room model at runtime to avoid circular import)
     from app.db.database import SessionLocal  # not used, but ensure db utils available
@@ -145,6 +153,8 @@ def try_process_match(db: Session):
 
     # remove selected users from queue
     remove_many_from_queue(db, selected_user_ids)
+
+    print(f"Room {room.id} created with members: {selected_user_ids}")
 
     return {
         "message": "Room created",

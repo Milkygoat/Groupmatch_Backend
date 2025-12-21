@@ -15,26 +15,35 @@ router = APIRouter(prefix="/matchmaking", tags=["Matchmaking"])
 def join_queue(db: Session = Depends(get_db), current_user=Depends(get_current_user)):
     try:
         # ambil profile user
+        print(f"[DEBUG] User {current_user.id} trying to join matchmaking")
         profile = db.query(Profile).filter(Profile.user_id == current_user.id).first()
         if not profile:
+            print(f"[DEBUG] User {current_user.id} has no profile")
             raise HTTPException(status_code=400, detail="User belum membuat profile")
 
+        print(f"[DEBUG] User {current_user.id} profile found, role: {profile.role}")
         result = join_matchmaking(
             db=db,
             user_id=current_user.id,
             role=profile.role
         )
 
+        print(f"[DEBUG] Matchmaking result: {result}")
+        
         # result bisa {"message": "..."} atau hasil create_room
-        return JoinMatchmakingResponse(
+        response = JoinMatchmakingResponse(
             message=result.get("message"),
             room_id=result.get("room_id"),
             leader_id=result.get("leader_id")
         )
+        print(f"[DEBUG] Response created: {response}")
+        return response
     except HTTPException:
         raise
     except Exception as e:
-        print(f"Matchmaking error: {str(e)}")
+        import traceback
+        error_msg = traceback.format_exc()
+        print(f"[ERROR] Matchmaking error: {error_msg}")
         raise HTTPException(status_code=500, detail=f"Matchmaking error: {str(e)}")
 
 @router.get("/status")
