@@ -12,7 +12,6 @@ import cloudinary
 from app.core.config import settings
 from app.matchmaking.router import router as matchmaking_router
 from app.rooms.router import router as room_router
-from app.chat.router import router as chat_router
 from app.ws.router import router as ws_router
 from fastapi.middleware.cors import CORSMiddleware 
 # from app.ws.voice import router as voice_router
@@ -53,8 +52,6 @@ app.include_router(auth_router)
 app.include_router(matchmaking_router)
 
 app.include_router(room_router)
-
-app.include_router(chat_router)
 
 app.include_router(ws_router)
 
