@@ -38,22 +38,4 @@ class Profile(Base):
 
 
 
-# # ================= ROOM MEMBER =================
-# class RoomMember(Base):
-#     __tablename__ = "room_members"
 
-#     id = Column(Integer, primary_key=True)
-#     room_id = Column(Integer, ForeignKey("rooms.id"))
-#     user_id = Column(Integer, ForeignKey("auth.id"))
-
-#     room = relationship("Room", back_populates="members")
-
-
-# ================= MATCHMAKING QUEUE =================
-class MatchmakingQueue(Base):
-    __tablename__ = "matchmaking_queue"
-
-    id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey("auth.id"), unique=True)
-    role = Column(String(50))
-    joined_at = Column(DateTime, server_default=func.now())

@@ -86,3 +86,27 @@ def clear_matchmaking_queue(
     from .queue import remove_from_queue
     remove_from_queue(db, current_user.id)
     return {"message": "Removed from queue"}
+
+
+@router.post("/leave")
+def leave_matchmaking(
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
+    """Leave matchmaking queue or room"""
+    from .queue import remove_from_queue
+    
+    # Remove dari queue
+    remove_from_queue(db, current_user.id)
+    
+    # Remove dari room juga (optional, untuk flexibility)
+    member = db.query(RoomMember).filter(
+        RoomMember.user_id == current_user.id
+    ).first()
+    
+    if member:
+        db.delete(member)
+        db.commit()
+        return {"message": "Left room"}
+    
+    return {"message": "Left queue"}

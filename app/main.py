@@ -1,7 +1,11 @@
 from fastapi import FastAPI
 from app.db.database import engine
 
+# Import all models first
 from app.db import models
+from app.rooms.model import Room
+from app.matchmaking.models import RoomMember, MatchmakingQueue
+
 from app.auth.router import router as auth_router
 from app.profile.router import router as profile_router
 import cloudinary

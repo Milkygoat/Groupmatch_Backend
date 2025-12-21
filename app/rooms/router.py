@@ -14,30 +14,50 @@ router = APIRouter(prefix="/rooms", tags=["Rooms"])
 
 def format_room_response(room: Room, db: Session) -> dict:
     """Convert room object to response with member details including role_id"""
-    room_members = db.query(RoomMember).filter(RoomMember.room_id == room.id).all()
-    
-    members_list = []
-    for room_member in room_members:
-        user = room_member.user
-        profile = user.profile
-        members_list.append({
-            "user_id": user.id,
-            "name": profile.name if profile else "",
-            "username": user.username,
-            "role": room_member.role or (profile.role if profile else ""),
-            "role_id": room_member.role_id,
-            "pict": profile.pict if profile else None
-        })
-    
-    return {
-        "id": room.id,
-        "leader_id": room.leader_id,
-        "status": room.status,
-        "capacity": room.capacity,
-        "current_count": room.current_count,
-        "created_at": room.created_at,
-        "members": members_list
-    }
+    try:
+        room_members = db.query(RoomMember).filter(RoomMember.room_id == room.id).all()
+        
+        members_list = []
+        for room_member in room_members:
+            try:
+                user = room_member.user
+                if not user:
+                    continue
+                    
+                profile = user.profile
+                members_list.append({
+                    "user_id": user.id,
+                    "name": profile.name if profile else "",
+                    "username": user.username,
+                    "role": room_member.role or (profile.role if profile else ""),
+                    "role_id": room_member.role_id,
+                    "pict": profile.pict if profile else None
+                })
+            except Exception as e:
+                print(f"[ERROR] Error processing room_member {room_member.id}: {str(e)}")
+                continue
+        
+        return {
+            "id": room.id,
+            "leader_id": room.leader_id,
+            "status": room.status,
+            "capacity": room.capacity,
+            "current_count": room.current_count,
+            "created_at": room.created_at,
+            "members": members_list
+        }
+    except Exception as e:
+        print(f"[ERROR] Error in format_room_response for room {room.id}: {str(e)}")
+        # Fallback response
+        return {
+            "id": room.id,
+            "leader_id": room.leader_id,
+            "status": room.status,
+            "capacity": room.capacity,
+            "current_count": room.current_count,
+            "created_at": room.created_at,
+            "members": []
+        }
 
 
 # # GET /rooms - lihat semua room

@@ -2,6 +2,7 @@ from sqlalchemy import Column, Integer, Enum, ForeignKey, DateTime, Table, Strin
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 from app.db.database import Base
+from app.db.models import User  # Import User to avoid circular import
 
 
 room_users = Table(
@@ -22,14 +23,11 @@ class Room(Base):
     current_count = Column(Integer, default=0)
 
     leader_id = Column(Integer, ForeignKey("auth.id"), nullable=True)
-    leader = relationship("User", back_populates="rooms_led")
+    leader = relationship(User, back_populates="rooms_led", foreign_keys=[leader_id])
     
     # Relationship to users melalui room_users table
     members = relationship(
-        "User",
+        User,
         secondary="room_users",
         back_populates="rooms"
     )
-    
-    # Relationship to room members dengan role info
-    room_members = relationship("RoomMember", back_populates="room")

@@ -12,8 +12,6 @@ class MatchmakingQueue(Base):
     role = Column(String(50))
     joined_at = Column(TIMESTAMP)
 
-    user = relationship("User")  # expects class User in app.db.models
-
 
 class RoomMember(Base):
     __tablename__ = "room_members"
@@ -24,9 +22,6 @@ class RoomMember(Base):
     user_id = Column(Integer, ForeignKey("auth.id", ondelete="CASCADE"))
     role_id = Column(Integer, nullable=True)
     role = Column(String(50), nullable=True)  # Store role name for quick access
-    
-    room = relationship("Room", back_populates="room_members")
-    user = relationship("User")
 
 
 class RoomHistory(Base):
