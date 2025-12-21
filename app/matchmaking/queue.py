@@ -1,8 +1,9 @@
 from sqlalchemy.orm import Session
 from .models import MatchmakingQueue
+from datetime import datetime
 
 def add_to_queue(db: Session, user_id: int, role: str):
-    entry = MatchmakingQueue(user_id=user_id, role=role)
+    entry = MatchmakingQueue(user_id=user_id, role=role, joined_at=datetime.now())
     db.add(entry)
     db.commit()
     db.refresh(entry)
