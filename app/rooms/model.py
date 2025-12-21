@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, Enum, ForeignKey, DateTime, Table
+from sqlalchemy import Column, Integer, Enum, ForeignKey, DateTime, Table, String
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 from app.db.database import Base
@@ -30,3 +30,6 @@ class Room(Base):
         secondary="room_users",
         back_populates="rooms"
     )
+    
+    # Relationship to room members dengan role info
+    room_members = relationship("RoomMember", back_populates="room")

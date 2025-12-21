@@ -158,8 +158,21 @@ def try_process_match(db: Session):
     # Get the User objects for the selected user IDs
     users = db.query(User).filter(User.id.in_(selected_user_ids)).all()
     
-    # Add users to room members
+    # Add users to room members via room_users
     room.members.extend(users)
+    
+    # Also add to room_members table with role information
+    for user_id in selected_user_ids:
+        # Get the queue entry to get the role
+        queue_entry = next((e for e in queue_entries if e.user_id == user_id), None)
+        room_member = RoomMember(
+            room_id=room.id,
+            user_id=user_id,
+            role=queue_entry.role if queue_entry else None,
+            role_id=None  # Can be set later if needed
+        )
+        db.add(room_member)
+    
     db.commit()
 
     # remove selected users from queue

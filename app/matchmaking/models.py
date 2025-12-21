@@ -22,6 +22,11 @@ class RoomMember(Base):
     id = Column(Integer, primary_key=True, index=True)
     room_id = Column(Integer, ForeignKey("rooms.id", ondelete="CASCADE"))
     user_id = Column(Integer, ForeignKey("auth.id", ondelete="CASCADE"))
+    role_id = Column(Integer, nullable=True)
+    role = Column(String(50), nullable=True)  # Store role name for quick access
+    
+    room = relationship("Room", back_populates="room_members")
+    user = relationship("User")
 
 
 class RoomHistory(Base):
