@@ -134,10 +134,12 @@ def try_process_match(db: Session):
 
     # add members & history using local models to avoid circular import
     from .models import RoomMember, RoomHistory
-    users = db.query(Profile.user).filter(
-    Profile.user_id.in_(selected_user_ids)
-    ).all()
-
+    from app.db.models import User
+    
+    # Get the User objects for the selected user IDs
+    users = db.query(User).filter(User.id.in_(selected_user_ids)).all()
+    
+    # Add users to room members
     room.members.extend(users)
     db.commit()
 
