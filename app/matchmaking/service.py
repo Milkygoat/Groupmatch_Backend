@@ -67,27 +67,38 @@ def normalize_role(raw: str) -> str:
     return ROLE_MAP.get(token, r)  # if can't map, return original (unsafe)
 
 def join_matchmaking(db: Session, user_id: int, role: str):
-    # 1. cek profile ada
-    profile = db.query(Profile).filter_by(user_id=user_id).first()
-    if not profile:
-        raise HTTPException(status_code=400, detail="User belum membuat profile.")
+    try:
+        # 1. cek profile ada
+        profile = db.query(Profile).filter_by(user_id=user_id).first()
+        if not profile:
+            raise HTTPException(status_code=400, detail="User belum membuat profile.")
 
-    # normalize role from profile if role param not passed
-    normalized = normalize_role(role or profile.role)
-    print(f"User {user_id}: Original role='{role or profile.role}', Normalized='{normalized}'")
+        # normalize role from profile if role param not passed
+        normalized = normalize_role(role or profile.role)
+        print(f"User {user_id}: Original role='{role or profile.role}', Normalized='{normalized}'")
 
-    # 2. cek sudah di queue?
-    if is_in_queue(db, user_id):
-        raise HTTPException(status_code=400, detail="User sudah berada dalam queue.")
+        # 2. cek sudah di queue?
+        if is_in_queue(db, user_id):
+            raise HTTPException(status_code=400, detail="User sudah berada dalam queue.")
 
-    # 3. tambah ke queue
-    add_to_queue(db, user_id, normalized)
+        # 3. tambah ke queue
+        add_to_queue(db, user_id, normalized)
+        print(f"[DEBUG] User {user_id} added to queue")
 
-    # 4. coba proses matchmaking
-    created = try_process_match(db)
-    if created:
-        return created
-    return {"message": "Joined matchmaking queue"}
+        # 4. coba proses matchmaking
+        created = try_process_match(db)
+        print(f"[DEBUG] try_process_match returned: {created}")
+        
+        if created:
+            return created
+        
+        result = {"message": "Joined matchmaking queue"}
+        print(f"[DEBUG] Returning result: {result}")
+        return result
+    except Exception as e:
+        import traceback
+        print(f"[ERROR] in join_matchmaking: {traceback.format_exc()}")
+        raise
 
 def try_process_match(db: Session):
     """
