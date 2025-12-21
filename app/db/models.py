@@ -30,16 +30,7 @@ class Profile(Base):
 
     user = relationship("User", back_populates="profile")
 
-    # ================= ROOM =================
-class Room(Base):
-    __tablename__ = "rooms"
 
-    id = Column(Integer, primary_key=True, index=True)
-    leader_id = Column(Integer, ForeignKey("auth.id"))
-    created_at = Column(DateTime, server_default=func.now())
-
-    leader = relationship("User")
-    members = relationship("RoomMember", back_populates="room")
 
 
 # ================= ROOM MEMBER =================

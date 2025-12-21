@@ -12,7 +12,7 @@ from fastapi.middleware.cors import CORSMiddleware
 # from app.ws.voice import router as voice_router
 
 from app.db.database import Base, engine
-from app.db import models  # pastikan semua model ke-import
+
 
 
 
