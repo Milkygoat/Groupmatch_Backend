@@ -52,3 +52,16 @@ def get_my_room(
         raise HTTPException(status_code=404, detail="No active room")
 
     return db.query(Room).filter(Room.id == member.room_id).first()
+
+
+@router.get("/{room_id}")
+def get_room(
+    room_id: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
+    room = db.query(Room).filter(Room.id == room_id).first()
+    if not room:
+        raise HTTPException(status_code=404, detail="Room not found")
+    
+    return room
