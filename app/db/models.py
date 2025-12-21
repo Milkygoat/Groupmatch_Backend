@@ -11,9 +11,14 @@ class User(Base):
     username = Column(String(255), unique=True, index=True)
     password = Column(String(255))
     created_at = Column(DateTime, server_default=func.now())
-    profile = relationship("Profile", back_populates="user", uselist=False)
 
+    profile = relationship("Profile", back_populates="user", uselist=False)
     rooms_led = relationship("Room", back_populates="leader")
+    rooms = relationship(
+        "Room",
+        secondary="room_users",
+        back_populates="members"
+    )
 
 
 class Profile(Base):
@@ -33,15 +38,15 @@ class Profile(Base):
 
 
 
-# ================= ROOM MEMBER =================
-class RoomMember(Base):
-    __tablename__ = "room_members"
+# # ================= ROOM MEMBER =================
+# class RoomMember(Base):
+#     __tablename__ = "room_members"
 
-    id = Column(Integer, primary_key=True)
-    room_id = Column(Integer, ForeignKey("rooms.id"))
-    user_id = Column(Integer, ForeignKey("auth.id"))
+#     id = Column(Integer, primary_key=True)
+#     room_id = Column(Integer, ForeignKey("rooms.id"))
+#     user_id = Column(Integer, ForeignKey("auth.id"))
 
-    room = relationship("Room", back_populates="members")
+#     room = relationship("Room", back_populates="members")
 
 
 # ================= MATCHMAKING QUEUE =================

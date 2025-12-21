@@ -1,7 +1,15 @@
-from sqlalchemy import Column, Integer, Enum, ForeignKey, DateTime
+from sqlalchemy import Column, Integer, Enum, ForeignKey, DateTime, Table
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 from app.db.database import Base
+
+
+room_users = Table(
+    "room_users",
+    Base.metadata,
+    Column("room_id", ForeignKey("rooms.id"), primary_key=True),
+    Column("user_id", ForeignKey("auth.id"), primary_key=True),
+)
 
 class Room(Base):
     __tablename__ = "rooms"
@@ -16,9 +24,9 @@ class Room(Base):
     leader_id = Column(Integer, ForeignKey("auth.id"), nullable=True)
     leader = relationship("User", back_populates="rooms_led")
 
-# 🔥 INI YANG HILANG
-    members = relationship(
-        "RoomMember",
-        back_populates="room",
-        cascade="all, delete-orphan"
-    )
+# # 🔥 INI YANG HILANG
+#     members = relationship(
+#         "RoomMember",
+#         back_populates="room",
+#         cascade="all, delete-orphan"
+#     )

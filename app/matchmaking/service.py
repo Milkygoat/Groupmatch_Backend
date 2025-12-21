@@ -2,7 +2,7 @@ from sqlalchemy.orm import Session
 from fastapi import HTTPException
 import random
 from app.rooms.model import Room
-from .models import RoomMember, RoomHistory
+# from .models import RoomMember, RoomHistory
 from .queue import add_to_queue, count_queue, get_all_queue, clear_queue
 from app.db.models import Profile  # kalau file kamu beda, sesuaikan
 from sqlalchemy.orm import Session
@@ -134,13 +134,12 @@ def try_process_match(db: Session):
 
     # add members & history using local models to avoid circular import
     from .models import RoomMember, RoomHistory
-    for uid in selected_user_ids:
-        m = RoomMember(room_id=room.id, user_id=uid)
-        db_session.add(m)
-        h = RoomHistory(room_id=room.id, user_id=uid, action="join")
-        db_session.add(h)
+    users = db.query(Profile.user).filter(
+    Profile.user_id.in_(selected_user_ids)
+    ).all()
 
-    db_session.commit()
+    room.members.extend(users)
+    db.commit()
 
     # remove selected users from queue
     remove_many_from_queue(db, selected_user_ids)
