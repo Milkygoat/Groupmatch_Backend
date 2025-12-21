@@ -7,6 +7,8 @@ from .service import join_matchmaking
 from .schemas import JoinMatchmakingResponse
 from app.db.models import Profile
 
+from app.db.models import RoomMember, MatchmakingQueue
+
 router = APIRouter(prefix="/matchmaking", tags=["Matchmaking"])
 
 @router.post("/join", response_model=JoinMatchmakingResponse)
@@ -28,3 +30,33 @@ def join_queue(db: Session = Depends(get_db), current_user=Depends(get_current_u
         room_id=result.get("room_id"),
         leader_id=result.get("leader_id")
     )
+
+@router.get("/status")
+def matchmaking_status(
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
+    # cek apakah user sudah punya room
+    member = db.query(RoomMember).filter(
+        RoomMember.user_id == current_user.id
+    ).first()
+
+    if member:
+        return {
+            "status": "matched",
+            "room_id": member.room_id
+        }
+
+    # cek apakah user ada di queue
+    in_queue = db.query(MatchmakingQueue).filter_by(
+        user_id=current_user.id
+    ).first()
+
+    if in_queue:
+        return {
+            "status": "waiting"
+        }
+
+    return {
+        "status": "idle"
+    }
