@@ -4,8 +4,7 @@ from sqlalchemy.orm import Session
 from app.core.security import get_current_user
 from app.db.database import get_db
 from .model import Room
-from app.rooms.model import Room
-from app.db.models import RoomMember
+from app.matchmaking.models import RoomMember
 
 
 

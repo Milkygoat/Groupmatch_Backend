@@ -7,7 +7,7 @@ from .service import join_matchmaking
 from .schemas import JoinMatchmakingResponse
 from app.db.models import Profile
 
-from app.db.models import RoomMember, MatchmakingQueue
+from app.matchmaking.models import RoomMember, MatchmakingQueue
 
 router = APIRouter(prefix="/matchmaking", tags=["Matchmaking"])
 
