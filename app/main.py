@@ -18,7 +18,7 @@ from app.db.database import Base, engine
 models.Base.metadata.create_all(bind=engine)
 
 
-app = FastAPI()
+app = FastAPI(debug=True)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
