@@ -95,8 +95,6 @@ def leave_matchmaking(
 ):
     """Leave matchmaking queue or room"""
     from .queue import remove_from_queue
-    from app.matchmaking.models import RoomHistory
-    from datetime import datetime
     
     # Remove dari queue
     remove_from_queue(db, current_user.id)
@@ -107,37 +105,11 @@ def leave_matchmaking(
     ).first()
     
     if member:
-        room_id = member.room_id
-        
-        # Add room history entry
-        room_history = RoomHistory(
-            room_id=room_id,
-            user_id=current_user.id,
-            action="leave",
-            timestamp=datetime.now()
-        )
-        db.add(room_history)
-        
-        # Update room current_count
-        from app.rooms.model import Room
-        room = db.query(Room).filter(Room.id == room_id).first()
-        if room:
-            room.current_count = max(0, room.current_count - 1)
-        
         db.delete(member)
         db.commit()
-        return {"message": "Left room", "room_id": room_id}
+        return {"message": "Left room"}
     
     return {"message": "Left queue"}
-
-
-@router.delete("/leave")
-def delete_leave_matchmaking(
-    db: Session = Depends(get_db),
-    current_user=Depends(get_current_user)
-):
-    """Leave matchmaking queue or room (DELETE method alias)"""
-    return leave_matchmaking(db=db, current_user=current_user)
 
 
 @router.get("/history/{room_id}")

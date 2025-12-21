@@ -15,18 +15,13 @@ router = APIRouter(prefix="/rooms", tags=["Rooms"])
 def format_room_response(room: Room, db: Session) -> dict:
     """Convert room object to response with member details including role_id"""
     try:
-        # Query room members directly from database
         room_members = db.query(RoomMember).filter(RoomMember.room_id == room.id).all()
         
         members_list = []
         for room_member in room_members:
             try:
-                # Manually fetch user data since relationship might not be loaded
-                from app.db.models import User
-                user = db.query(User).filter(User.id == room_member.user_id).first()
-                
+                user = room_member.user
                 if not user:
-                    print(f"[WARNING] User {room_member.user_id} not found for room_member {room_member.id}")
                     continue
                     
                 profile = user.profile
@@ -40,24 +35,19 @@ def format_room_response(room: Room, db: Session) -> dict:
                 })
             except Exception as e:
                 print(f"[ERROR] Error processing room_member {room_member.id}: {str(e)}")
-                import traceback
-                traceback.print_exc()
                 continue
         
         return {
             "id": room.id,
-            "leaderId": room.leader_id,  # Changed to camelCase for frontend
-            "leader_id": room.leader_id,  # Keep both for compatibility
+            "leader_id": room.leader_id,
             "status": room.status,
             "capacity": room.capacity,
             "current_count": room.current_count,
-            "created_at": room.created_at.isoformat() if room.created_at else None,
+            "created_at": room.created_at,
             "members": members_list
         }
     except Exception as e:
         print(f"[ERROR] Error in format_room_response for room {room.id}: {str(e)}")
-        import traceback
-        traceback.print_exc()
         # Fallback response
         return {
             "id": room.id,
