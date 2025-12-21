@@ -40,10 +40,8 @@ class RoomMember(Base):
     id = Column(Integer, primary_key=True)
     room_id = Column(Integer, ForeignKey("rooms.id"))
     user_id = Column(Integer, ForeignKey("auth.id"))
-    role = Column(String(50))
 
     room = relationship("Room", back_populates="members")
-    user = relationship("User")
 
 
 # ================= MATCHMAKING QUEUE =================

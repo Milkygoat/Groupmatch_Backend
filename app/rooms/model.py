@@ -15,3 +15,10 @@ class Room(Base):
 
     leader_id = Column(Integer, ForeignKey("auth.id"), nullable=True)
     leader = relationship("User", back_populates="rooms_led")
+
+# 🔥 INI YANG HILANG
+    members = relationship(
+        "RoomMember",
+        back_populates="room",
+        cascade="all, delete-orphan"
+    )
