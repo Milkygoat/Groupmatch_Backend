@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.db.database import get_db
-from app.core.security import verify_token
+from app.core.security import get_current_user
 from app.chat.service import save_message, get_chat_history, format_message_response
 from app.chat.schemas import MessageCreate, MessageResponse, RoomChatHistory
 
@@ -12,7 +12,7 @@ router = APIRouter(prefix="/chat", tags=["chat"])
 def get_room_chat_history(
     room_id: int,
     limit: int = 100,
-    token: str = Depends(verify_token),
+    current_user = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     """Get chat history for a room"""
@@ -38,13 +38,13 @@ def get_room_chat_history(
 def send_message(
     room_id: int,
     message_data: MessageCreate,
-    token: str = Depends(verify_token),
+    current_user = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     """Send a message to room chat"""
     try:
-        # Extract user_id from token
-        user_id = token.get("user_id")
+        # Extract user_id from current_user
+        user_id = current_user.id
         if not user_id:
             raise HTTPException(status_code=401, detail="Unauthorized")
         
