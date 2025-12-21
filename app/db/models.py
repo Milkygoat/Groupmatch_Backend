@@ -35,7 +35,4 @@ class Profile(Base):
 
     user = relationship("User", back_populates="profile")
 
-
-
-
-
+# Note: MatchmakingQueue is defined in app/matchmaking/models.py to avoid duplicate definitions

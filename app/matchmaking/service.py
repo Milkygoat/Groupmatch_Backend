@@ -64,6 +64,19 @@ def join_matchmaking(db: Session, user_id: int, role: str):
         print(f"[MATCHMAKING] USER {user_id} JOINING MATCHMAKING")
         print(f"[MATCHMAKING] =================================================================")
         
+        # 0. cek apakah user sudah ada di room
+        from app.matchmaking.models import RoomMember
+        existing_member = db.query(RoomMember).filter(
+            RoomMember.user_id == user_id
+        ).first()
+        
+        if existing_member:
+            print(f"[MATCHMAKING] ⚠️ User already in room {existing_member.room_id}")
+            return {
+                "message": "Already in room",
+                "room_id": existing_member.room_id
+            }
+        
         # 1. cek profile ada
         profile = db.query(Profile).filter_by(user_id=user_id).first()
         if not profile:
