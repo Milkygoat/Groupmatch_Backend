@@ -1,6 +1,9 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import asc
 from .model import Room
+from datetime import datetime
+from app.matchmaking.models import RoomHistory
+
 
 MAX_ROOM_CAPACITY = 4  # bebas kamu ubah
 
@@ -35,3 +38,18 @@ def find_or_create_room(db: Session, user_id: int):
     db.refresh(room)
 
     return room
+
+def log_room_history(
+    db,
+    room_id: int,
+    user_id: int,
+    action: str
+):
+    history = RoomHistory(
+        room_id=room_id,
+        user_id=user_id,
+        action=action,
+        timestamp=datetime.utcnow()
+    )
+    db.add(history)
+    db.commit()

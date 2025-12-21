@@ -16,10 +16,6 @@ class Settings(BaseSettings):
     GOOGLE_CLIENT_SECRET: str
     GOOGLE_REDIRECT_URI: str
 
-    GITHUB_CLIENT_ID: str
-    GITHUB_CLIENT_SECRET: str
-    GITHUB_REDIRECT_URI: str
-
     # Cloudinary
     CLOUDINARY_CLOUD_NAME: str
     CLOUDINARY_API_KEY: str
@@ -29,7 +25,7 @@ class Settings(BaseSettings):
     FRONTEND_URL: str
 
     class Config:
-        env_file = ".env"
+        # env_file = ".env"
         extra = "allow"  # optional, biar aman kalau ada var lain
 
 settings = Settings()

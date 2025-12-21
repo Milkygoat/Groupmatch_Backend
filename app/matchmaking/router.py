@@ -2,111 +2,129 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.db.database import get_db
-from app.core.security import get_current_user
-from .service import join_matchmaking
-from .schemas import JoinMatchmakingResponse
-from app.db.models import Profile
-
+from app.core.security import get_current_user   # ✅ SATU INI SAJA
+from app.matchmaking.service import join_matchmaking, end_room
 from app.matchmaking.models import RoomMember, MatchmakingQueue
+from app.db.models import Profile
+from app.matchmaking.service import log_room_history
 
 router = APIRouter(prefix="/matchmaking", tags=["Matchmaking"])
 
-@router.post("/join", response_model=JoinMatchmakingResponse)
-def join_queue(db: Session = Depends(get_db), current_user=Depends(get_current_user)):
-    try:
-        # ambil profile user
-        print(f"[DEBUG] User {current_user.id} trying to join matchmaking")
-        profile = db.query(Profile).filter(Profile.user_id == current_user.id).first()
-        if not profile:
-            print(f"[DEBUG] User {current_user.id} has no profile")
-            raise HTTPException(status_code=400, detail="User belum membuat profile")
 
-        print(f"[DEBUG] User {current_user.id} profile found, role: {profile.role}")
-        result = join_matchmaking(
-            db=db,
-            user_id=current_user.id,
-            role=profile.role
+def get_room_members(db: Session, room_id: int):
+    members = db.query(RoomMember).filter(
+        RoomMember.room_id == room_id
+    ).all()
+
+    return [
+        {
+            "user_id": m.user_id,
+            "role": m.role
+        }
+        for m in members
+    ]
+
+
+@router.post("/join")
+def join_queue(
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
+    # 1️⃣ pastikan user punya profile
+    profile = db.query(Profile).filter(
+        Profile.user_id == current_user.id
+    ).first()
+
+    if not profile:
+        raise HTTPException(
+            status_code=400,
+            detail="User belum membuat profile"
         )
 
-        print(f"[DEBUG] Matchmaking result: {result}")
-        
-        # result bisa {"message": "..."} atau hasil create_room
-        response = JoinMatchmakingResponse(
-            message=result.get("message"),
-            room_id=result.get("room_id"),
-            leader_id=result.get("leader_id")
-        )
-        print(f"[DEBUG] Response created: {response}")
-        return response
-    except HTTPException:
-        raise
-    except Exception as e:
-        import traceback
-        error_msg = traceback.format_exc()
-        print(f"[ERROR] Matchmaking error: {error_msg}")
-        raise HTTPException(status_code=500, detail=f"Matchmaking error: {str(e)}")
+    # 2️⃣ jika sudah punya room → BALIKIN ROOM ITU
+    existing = db.query(RoomMember).filter(
+        RoomMember.user_id == current_user.id
+    ).first()
+
+    if existing:
+        room = existing.room
+        return {
+            "status": "matched",
+            "message": "User already in a room",
+            "room_id": room.id,
+            "leader_id": room.leader_id,
+            "members": get_room_members(db, room.id)
+        }
+
+    # 3️⃣ matchmaking
+    return join_matchmaking(
+        db=db,
+        user_id=current_user.id,
+        role=profile.role
+    )
+
 
 @router.get("/status")
 def matchmaking_status(
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user)
 ):
-    # cek apakah user sudah punya room
     member = db.query(RoomMember).filter(
         RoomMember.user_id == current_user.id
     ).first()
 
     if member:
+        room = member.room
         return {
             "status": "matched",
-            "room_id": member.room_id
+            "room_id": room.id,
+            "leader_id": room.leader_id,
+            "members": get_room_members(db, room.id)
         }
 
-    # cek apakah user ada di queue
-    in_queue = db.query(MatchmakingQueue).filter_by(
-        user_id=current_user.id
+    in_queue = db.query(MatchmakingQueue).filter(
+        MatchmakingQueue.user_id == current_user.id
     ).first()
 
     if in_queue:
-        return {
-            "status": "waiting"
-        }
+        return {"status": "waiting"}
 
-    return {
-        "status": "idle"
-    }
+    return {"status": "idle"}
 
 
-@router.delete("/queue/clear")
-def clear_matchmaking_queue(
+@router.post("/end-room")
+def end_room_endpoint(
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user)
 ):
-    """Remove current user from queue"""
-    from .queue import remove_from_queue
-    remove_from_queue(db, current_user.id)
-    return {"message": "Removed from queue"}
-
+    return end_room(
+        db=db,
+        leader_id=current_user.id
+    )
 
 @router.post("/leave")
-def leave_matchmaking(
+def leave_room(
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user)
 ):
-    """Leave matchmaking queue or room"""
-    from .queue import remove_from_queue
-    
-    # Remove dari queue
-    remove_from_queue(db, current_user.id)
-    
-    # Remove dari room juga (optional, untuk flexibility)
     member = db.query(RoomMember).filter(
         RoomMember.user_id == current_user.id
     ).first()
-    
-    if member:
-        db.delete(member)
-        db.commit()
-        return {"message": "Left room"}
-    
-    return {"message": "Left queue"}
+
+    if not member:
+        raise HTTPException(status_code=404, detail="User not in room")
+
+    room_id = member.room_id
+
+    db.delete(member)
+    db.commit()
+
+    log_room_history(
+        db=db,
+        room_id=room_id,
+        user_id=current_user.id,
+        action="leave"
+    )
+
+    return {"message": "Left room"}
+

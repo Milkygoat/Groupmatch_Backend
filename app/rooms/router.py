@@ -6,7 +6,9 @@ from app.db.database import get_db
 from .model import Room
 from app.matchmaking.models import RoomMember
 from .schemas import RoomResponse, RoomDetailResponse, RoomMemberDetail
-
+from app.matchmaking.service import log_room_history
+from app.matchmaking.models import RoomHistory
+from sqlalchemy import desc
 
 
 router = APIRouter(prefix="/rooms", tags=["Rooms"])
@@ -60,29 +62,6 @@ def format_room_response(room: Room, db: Session) -> dict:
         }
 
 
-# # GET /rooms - lihat semua room
-# @router.get("/")
-# def get_all_rooms(db: Session = Depends(get_db)):
-#     return db.query(Room).all()
-
-
-
-# # GET /rooms/my - lihat room user yang aktif
-# @router.get("/my")
-# def get_my_room(
-#     db: Session = Depends(get_db),
-#     user = Depends(get_current_user)
-# ):
-#     room = db.query(Room).filter(
-#         Room.leader_id == user.id
-#     ).first()
-
-#     if not room:
-#         return {"message": "Kamu belum ditempatkan dalam room."}
-
-#     return room
-
-
 @router.get("/")
 def get_all_rooms(db: Session = Depends(get_db)):
     return db.query(Room).all()
@@ -103,6 +82,27 @@ def get_my_room(
     room = db.query(Room).filter(Room.id == member.room_id).first()
     return format_room_response(room, db)
 
+@router.get("/history")
+def get_room_history(
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
+    history = (
+        db.query(RoomHistory)
+        .filter(RoomHistory.user_id == current_user.id)
+        .order_by(desc(RoomHistory.timestamp))
+        .all()
+    )
+
+    return [
+        {
+            "room_id": h.room_id,
+            "action": h.action,
+            "timestamp": h.timestamp
+        }
+        for h in history
+    ]
+
 
 @router.get("/{room_id}")
 def get_room(
@@ -115,3 +115,41 @@ def get_room(
         raise HTTPException(status_code=404, detail="Room not found")
     
     return format_room_response(room, db)
+
+@router.post("/end")
+def end_room(
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_user)
+):
+    room = (
+        db.query(Room)
+        .filter(Room.leader_id == current_user.id, Room.status == "active")
+        .first()
+    )
+
+    if not room:
+        raise HTTPException(
+            status_code=403,
+            detail="Only leader can end the room"
+        )
+
+    # close room
+    room.status = "closed"
+    room.leader_id = None
+
+    # remove all members
+    db.query(RoomMember).filter(RoomMember.room_id == room.id).delete()
+
+    log_room_history(
+        db=db,
+        room_id=room.id,
+        user_id=current_user.id,
+        action="closed"
+    )
+    db.commit()
+
+    return {
+        "status": "success",
+        "message": "Room ended successfully"
+    }
+

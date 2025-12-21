@@ -14,10 +14,12 @@ class User(Base):
 
     profile = relationship("Profile", back_populates="user", uselist=False)
     rooms_led = relationship("Room", back_populates="leader")
-    rooms = relationship(
-        "Room",
-        secondary="room_users",
-        back_populates="members"
+
+    # 🔥 INI YANG BENAR
+    room_members = relationship(
+        "RoomMember",
+        back_populates="user",
+        cascade="all, delete-orphan"
     )
 
 
@@ -25,17 +27,12 @@ class Profile(Base):
     __tablename__ = "profile"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("auth.id"), unique=True)  # 1 user = 1 profile
+    user_id = Column(Integer, ForeignKey("auth.id"), unique=True)
 
     name = Column(String(100))
     birthdate = Column(Date)
     role = Column(String(50))
-    pict = Column(String(255))  # URL foto profil
-    skill = Column(String(255))  # bisa disimpan comma-separated "Python,Vue,SQL"
+    pict = Column(String(255))
+    skill = Column(String(255))
 
     user = relationship("User", back_populates="profile")
-
-
-
-
-

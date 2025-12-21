@@ -5,13 +5,6 @@ from app.db.database import Base
 from app.db.models import User  # Import User to avoid circular import
 
 
-room_users = Table(
-    "room_users",
-    Base.metadata,
-    Column("room_id", ForeignKey("rooms.id"), primary_key=True),
-    Column("user_id", ForeignKey("auth.id"), primary_key=True),
-)
-
 class Room(Base):
     __tablename__ = "rooms"
 
@@ -23,11 +16,11 @@ class Room(Base):
     current_count = Column(Integer, default=0)
 
     leader_id = Column(Integer, ForeignKey("auth.id"), nullable=True)
-    leader = relationship(User, back_populates="rooms_led", foreign_keys=[leader_id])
-    
-    # Relationship to users melalui room_users table
+    leader = relationship("User", back_populates="rooms_led")
+
+    # 🔥 RELASI YANG BENAR
     members = relationship(
-        User,
-        secondary="room_users",
-        back_populates="rooms"
+        "RoomMember",
+        back_populates="room",
+        cascade="all, delete-orphan"
     )
