@@ -20,10 +20,9 @@ from app.db.models import Profile
 
 # roles required (normalized keys)
 REQUIRED = {
-    "pm": 1,
     "qa": 1,
-    "be": 2,
-    "fe": 2
+    "be": 1,
+    "fe": 1
 }
 
 # map possible role strings to normalized keys
@@ -79,7 +78,8 @@ def join_matchmaking(db: Session, user_id: int, role: str):
 
         # 2. cek sudah di queue?
         if is_in_queue(db, user_id):
-            raise HTTPException(status_code=400, detail="User sudah berada dalam queue.")
+            print(f"[DEBUG] User {user_id} already in queue, returning waiting status")
+            return {"message": "Already in queue"}
 
         # 3. tambah ke queue
         add_to_queue(db, user_id, normalized)

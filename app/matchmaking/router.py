@@ -75,3 +75,14 @@ def matchmaking_status(
     return {
         "status": "idle"
     }
+
+
+@router.delete("/queue/clear")
+def clear_matchmaking_queue(
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
+    """Remove current user from queue"""
+    from .queue import remove_from_queue
+    remove_from_queue(db, current_user.id)
+    return {"message": "Removed from queue"}
