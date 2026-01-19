@@ -96,7 +96,7 @@ async def websocket_room_endpoint(
 
                 await manager.broadcast(room_id, outgoing)
 
-            # Unknown (optional handling)
+          
             else:
                 await manager.broadcast(room_id, {
                     "type": "unknown",

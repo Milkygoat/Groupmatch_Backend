@@ -15,7 +15,7 @@ class User(Base):
     profile = relationship("Profile", back_populates="user", uselist=False)
     rooms_led = relationship("Room", back_populates="leader")
 
-    # 🔥 INI YANG BENAR
+
     room_members = relationship(
         "RoomMember",
         back_populates="user",

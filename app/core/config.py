@@ -25,8 +25,8 @@ class Settings(BaseSettings):
     FRONTEND_URL: str
 
     class Config:
-        # env_file = ".env"
-        extra = "allow"  # optional, biar aman kalau ada var lain
+        
+        extra = "allow"  
 
 settings = Settings()
 

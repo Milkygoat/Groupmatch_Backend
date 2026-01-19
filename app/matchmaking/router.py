@@ -30,7 +30,7 @@ def join_queue(
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user)
 ):
-    # 1️⃣ pastikan user punya profile
+    # pastikan user punya profile
     profile = db.query(Profile).filter(
         Profile.user_id == current_user.id
     ).first()
@@ -41,7 +41,7 @@ def join_queue(
             detail="User belum membuat profile"
         )
 
-    # 2️⃣ jika sudah punya room → BALIKIN ROOM ITU
+    # jika sudah punya room → BALIKIN ROOM ITU
     existing = db.query(RoomMember).filter(
         RoomMember.user_id == current_user.id
     ).first()
@@ -56,7 +56,7 @@ def join_queue(
             "members": get_room_members(db, room.id)
         }
 
-    # 3️⃣ matchmaking
+    # matchmaking
     return join_matchmaking(
         db=db,
         user_id=current_user.id,

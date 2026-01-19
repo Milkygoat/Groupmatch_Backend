@@ -57,7 +57,7 @@ async def google_callback(code: str, db: Session = Depends(get_db)):
     google_user = await get_google_user(code)
 
     email = google_user["email"]
-    # picture = google_user.get("picture", "")
+   
 
     # Cek apakah user sudah ada
     existing_user = db.query(models.User).filter(models.User.email == email).first()
@@ -68,11 +68,10 @@ async def google_callback(code: str, db: Session = Depends(get_db)):
         new_user = models.User(
             email=email,
             username=username,
-            password="oauth",       # dummy password, tidak dipakai
+            password="oauth",       
         )
 
-        # kalau mau simpan pict, tambahkan kolom dulu di model
-        # new_user.pict = picture
+       
 
         db.add(new_user)
         db.commit()

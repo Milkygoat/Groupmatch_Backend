@@ -12,7 +12,7 @@ class Connection:
 
 class RoomConnectionManager:
     def __init__(self):
-        # room_id -> list[Connection]
+      
         self.rooms: Dict[int, List[Connection]] = {}
         self._lock = asyncio.Lock()
 
@@ -40,7 +40,7 @@ class RoomConnectionManager:
             try:
                 await c.websocket.send_text(text)
             except Exception:
-                # ignore individual send errors; disconnect will handle stale sockets
+               
                 pass
 
     async def list_users(self, room_id: int):

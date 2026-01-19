@@ -17,9 +17,8 @@ from .queue import (
 )
 from .models import RoomMember
 
-# ======================
+
 # ROLE CONFIG
-# ======================
 REQUIRED = {
     "qa": 1,
     "be": 1,
@@ -36,12 +35,10 @@ def normalize_role(raw: str) -> str:
     return ROLE_MAP.get(raw.lower(), raw.lower())
 
 
-# ======================
 # JOIN MATCHMAKING
-# ======================
 def join_matchmaking(db: Session, user_id: int, role: str):
 
-    # 1️⃣ cek sudah punya room?
+    # cek sudah punya room?
     existing = db.query(RoomMember).filter(
         RoomMember.user_id == user_id
     ).first()
@@ -49,17 +46,17 @@ def join_matchmaking(db: Session, user_id: int, role: str):
     if existing:
         return format_room_response(existing.room, "Already in room")
 
-    # 2️⃣ normalize role
+    # normalize role
     normalized = normalize_role(role)
 
-    # 3️⃣ cek queue
+    # cek queue
     if is_in_queue(db, user_id):
         return {"status": "waiting", "message": "Already in queue"}
 
-    # 4️⃣ add ke queue
+    # add ke queue
     add_to_queue(db, user_id, normalized)
 
-    # 5️⃣ proses matchmaking
+    # proses matchmaking
     room = try_process_match(db)
     if room:
         return room
@@ -67,9 +64,8 @@ def join_matchmaking(db: Session, user_id: int, role: str):
     return {"status": "waiting", "message": "Joined matchmaking queue"}
 
 
-# ======================
+
 # MATCHMAKING CORE
-# ======================
 def try_process_match(db: Session):
     queue = get_all_queue(db)
 
@@ -123,9 +119,8 @@ def try_process_match(db: Session):
 
 
 
-# ======================
+
 # END ROOM
-# ======================
 def end_room(db: Session, leader_id: int):
     room = db.query(Room).filter(
         Room.leader_id == leader_id,
@@ -155,9 +150,8 @@ def end_room(db: Session, leader_id: int):
 
 
 
-# ======================
+
 # RESPONSE FORMAT
-# ======================
 def format_room_response(room: Room, message: str):
     return {
         "status": "matched",

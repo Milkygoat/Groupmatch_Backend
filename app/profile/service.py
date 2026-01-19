@@ -52,9 +52,5 @@ def update_profile_picture(db: Session, user_id: int, url: str):
     db.commit()
     db.refresh(profile)
 
-    # # Update Redis cache
-    # redis_key = f"profile:{user_id}"
-    # redis_client.hset(redis_key, "pict", url)
-    # redis_client.expire(redis_key, 600)
 
     return profile

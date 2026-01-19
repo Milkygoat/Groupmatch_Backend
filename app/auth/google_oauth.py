@@ -6,15 +6,6 @@ GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token"
 GOOGLE_USERINFO_URL = "https://www.googleapis.com/oauth2/v3/userinfo"
 
 
-# def generate_google_login_url():
-#     return (
-#         f"{GOOGLE_AUTH_URL}"
-#         f"?client_id={settings.GOOGLE_CLIENT_ID}"
-#         f"&redirect_uri={settings.GOOGLE_REDIRECT_URI}"
-#         f"&response_type=code"
-#         f"&scope=openid%20email%20profile"
-#     )
-
 
 def generate_google_login_url():
     params = {
