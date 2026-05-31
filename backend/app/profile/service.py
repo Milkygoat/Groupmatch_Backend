@@ -1,0 +1,70 @@
+from sqlalchemy.orm import Session
+from app.db.models import Profile
+from app.db.database import get_db
+from sqlalchemy.orm import Session
+from fastapi import HTTPException
+from app.db.models import Profile, User
+
+def create_profile(db: Session, user_id: int, data):
+    user = db.query(User).filter(User.id == user_id).first()
+    if data.username:
+        existing = db.query(User).filter(User.username == data.username, User.id != user_id).first()
+        if existing:
+            raise HTTPException(status_code=400, detail="Username already used")
+        user.username = data.username
+
+    profile = Profile(
+        user_id=user_id,
+        name=data.name,
+        birthdate=data.birthdate,
+        role=data.role,
+        skill=data.skill,
+        pict=data.pict,
+    )
+    db.add(profile)
+    db.commit()
+    db.refresh(profile)
+    return profile
+
+
+def get_profile_by_user(db: Session, user_id: int):
+    return db.query(Profile).filter(Profile.user_id == user_id).first()
+
+
+def update_profile(db: Session, user_id: int, data):
+    user = db.query(User).filter(User.id == user_id).first()
+    if data.username:
+        existing = db.query(User).filter(User.username == data.username, User.id != user_id).first()
+        if existing:
+            raise HTTPException(status_code=400, detail="Username already used")
+        user.username = data.username
+
+    profile = db.query(Profile).filter(Profile.user_id == user_id).first()
+
+    if not profile:
+        return None
+
+    profile.name = data.name
+    profile.birthdate = data.birthdate
+    profile.role = data.role
+    profile.skill = data.skill
+    profile.pict = data.pict
+
+    db.commit()
+    db.refresh(profile)
+    return profile
+
+
+
+def update_profile_picture(db: Session, user_id: int, url: str):
+    profile = db.query(Profile).filter(Profile.user_id == user_id).first()
+
+    if not profile:
+        return None
+
+    profile.pict = url
+    db.commit()
+    db.refresh(profile)
+
+
+    return profile
